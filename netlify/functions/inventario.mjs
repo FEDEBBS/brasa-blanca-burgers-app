@@ -22,8 +22,8 @@ const ITEMS = [
   { id: 'refresco_bot',    label: 'Refresco',                           unidad: 'pz', per: { refresco: 1 } },
   { id: 'refresco_sabor',  label: 'Refresco de sabor (lata)',           unidad: 'pz', per: { mocktail: 1 } },
   { id: 'espumoso_manzana',label: 'Espumoso de manzana',                unidad: 'pz', per: null },   // [POR CONFIRMAR] consumo
-  { id: 'mermelada_tocino',label: 'Mermelada de tocino',                unidad: 'pz', per: null },   // [POR CONFIRMAR] receta
-  { id: 'aderezo_secreto', label: 'Aderezo secreto',                    unidad: 'pz', per: null },   // [POR CONFIRMAR] receta
+  { id: 'mermelada_tocino',label: 'Mermelada de tocino (kg)',           unidad: 'kg', per: null },   // [POR CONFIRMAR] receta
+  { id: 'aderezo_secreto', label: 'Aderezo secreto (kg)',               unidad: 'kg', per: null },   // [POR CONFIRMAR] receta
   // Desechables y salsas sin receta: se cuentan y piden, sin consumo teórico
   { id: 'papel_logo',      label: 'Papel con logo',                     unidad: 'pz', per: null },
   { id: 'servilletas',     label: 'Servilletas',                        unidad: 'pz', per: null },
