@@ -23,6 +23,15 @@ const ITEMS = [
   { id: 'espumoso_manzana',label: 'Espumoso de manzana',                unidad: 'pz', per: null },   // [POR CONFIRMAR] consumo
   { id: 'mermelada_tocino',label: 'Mermelada de tocino',                unidad: 'pz', per: null },   // [POR CONFIRMAR] receta
   { id: 'aderezo_secreto', label: 'Aderezo secreto',                    unidad: 'pz', per: null },   // [POR CONFIRMAR] receta
+  // Desechables y salsas sin receta: se cuentan y piden, sin consumo teórico
+  { id: 'papel_logo',      label: 'Papel con logo',                     unidad: 'pz', per: null },
+  { id: 'servilletas',     label: 'Servilletas',                        unidad: 'pz', per: null },
+  { id: 'catsup',          label: 'Catsup',                             unidad: 'pz', per: null },
+  { id: 'mayonesa',        label: 'Mayonesa',                           unidad: 'pz', per: null },
+  { id: 'mostaza',         label: 'Mostaza',                            unidad: 'pz', per: null },
+  { id: 'chiles',          label: 'Chiles',                             unidad: 'pz', per: null },
+  { id: 'contenedores',    label: 'Contenedores',                       unidad: 'pz', per: null },
+  { id: 'bolsas_llevar',   label: 'Bolsas para llevar',                 unidad: 'pz', per: null },
 ];
 
 const store = () => getStore('carrito');
