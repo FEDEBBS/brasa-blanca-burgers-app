@@ -1,0 +1,9 @@
+{
+  "name": "carrito-evolution",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "latest"
+  }
+}
