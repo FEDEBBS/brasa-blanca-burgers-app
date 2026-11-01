@@ -33,6 +33,7 @@ const ITEMS = [
   { id: 'chiles',          label: 'Chiles',                             unidad: 'pz', per: null },
   { id: 'contenedores',    label: 'Contenedores',                       unidad: 'pz', per: null },
   { id: 'bolsas_llevar',   label: 'Bolsas para llevar',                 unidad: 'pz', per: null },
+  { id: 'tanque_gas',     label: 'Tanque de gas',                      unidad: 'pz', per: null },
 ];
 
 const store = () => getStore('carrito');
