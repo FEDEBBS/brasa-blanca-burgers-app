@@ -189,6 +189,12 @@
   .invtab td small{color:var(--muted)}
   .invtab input{width:64px;font-family:var(--mono);font-size:13px;background:#E2DCCE;border:1px solid #CFC9BA;color:var(--paper);border-radius:6px;padding:4px}
   .invtab .pedir{font-weight:700;color:var(--brasa-2)}
+  .pedidowrap{width:100%;overflow:visible;margin-top:8px}
+  .pedtab{min-width:0;width:100%;table-layout:fixed}
+  .pedtab th,.pedtab td{padding:8px 4px;font-size:13px;word-break:break-word}
+  .pedtab th:nth-child(1){width:44%}
+  .pedtab th:nth-child(2),.pedtab th:nth-child(3),.pedtab th:nth-child(4){width:18%}
+  .pedtab input{width:100%;min-width:0;max-width:100%;padding:6px 4px;font-size:15px}
   .invtab .dif.bad{color:#B0401E;font-weight:700}
   .invtab .dif.ok{color:#2E6E4E}
 </style>
@@ -334,7 +340,7 @@
   <section id="pedido" hidden>
     <h2 class="sec">Pedido del día</h2>
     <p class="note" style="margin-top:0">Cuenta lo que hay en tu punto al cierre y captura el <b>conteo final</b>. El pedido sale de tu mínimo menos lo que hay. Luego copia el texto y mándalo por WhatsApp.</p>
-    <div id="pedidoTable" class="invwrap"></div>
+    <div id="pedidoTable" class="pedidowrap"></div>
     <button class="btn" id="pedidoSave" type="button" style="width:100%;margin-top:10px">Guardar conteo</button>
     <button class="btn ghost" id="pedidoWA" type="button" style="width:100%;margin-top:8px">Copiar pedido para WhatsApp</button>
     <textarea id="pedidoTexto" hidden style="width:100%;margin-top:8px;min-height:160px;font-family:var(--mono);font-size:13px;background:#E2DCCE;color:var(--paper);border:1px solid #CFC9BA;border-radius:8px;padding:10px"></textarea>
@@ -884,7 +890,7 @@ async function loadPedido(){
 function renderPedido(items){
   pedidoItems=items;
   const UNI={pz:'pz',g:'g'};
-  $('#pedidoTable').innerHTML = `<table class="invtab">
+  $('#pedidoTable').innerHTML = `<table class="invtab pedtab">
     <thead><tr><th>Insumo</th><th>Conteo final</th><th>Mínimo</th><th>Pedir</th></tr></thead>
     <tbody>${items.map(s=>`<tr data-ped="${s.id}">
       <td>${s.label} <small>(${UNI[s.unidad]||s.unidad})</small></td>
