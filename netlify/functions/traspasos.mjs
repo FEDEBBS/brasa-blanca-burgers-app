@@ -8,10 +8,10 @@ import { getStore } from '@netlify/blobs';
 //  POST   {action:'recibir', date, id, destino}                  -> { traspaso }
 
 const PUNTOS = ['av', 'cf'];
-// Insumos que pueden trasladarse (ids de protein.mjs). Carnes en kg, el resto en unidad base.
+// Insumos que pueden trasladarse (ids de protein.mjs). Carnes en piezas crudas (hamburguesas), el resto en unidad base.
 const TRASLADABLES = {
-  carne_master: 'kg', carne_jr: 'kg',
-  pan_brioche: 'pz', queso_americano: 'pz', lechuga_romana: 'g', papas_porcion: 'pz',
+  carne_master: 'pz', carne_jr: 'pz',
+  pan_grande: 'pz', pan_chico: 'pz', queso_americano: 'pz', lechuga_romana: 'g', papas_porcion: 'pz',
   tapioca_pz: 'pz', brownie_pz: 'pz', helado_bola: 'pz', refresco_bot: 'pz', refresco_sabor: 'pz',
 };
 

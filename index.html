@@ -397,7 +397,8 @@ const MEATS = [
   { id:'carne_jr',     label:'Carne Junior (2 × 75 g crudos)' },
 ];
 const COUNTS = [
-  { id:'pan_brioche',      label:'Pan brioche (piezas)' },
+  { id:'pan_grande',       label:'Pan grande, Master (piezas)' },
+  { id:'pan_chico',        label:'Pan chico, Junior (piezas)' },
   { id:'queso_americano',  label:'Queso americano (rebanadas)' },
   { id:'lechuga_romana',   label:'Lechuga romana (gramos · 150 g por Ice)' },
   { id:'papas_porcion',    label:'Papas (porciones)' },
@@ -775,8 +776,8 @@ async function refreshProt(){
   }catch(err){ toast('No se pudo cargar: '+err.message); }
 }
 const TRAS_INS=[
-  {id:'carne_master',label:'Carne Master / Ice (kg)'},{id:'carne_jr',label:'Carne Junior (kg)'},
-  {id:'pan_brioche',label:'Pan brioche (pz)'},{id:'queso_americano',label:'Queso americano (pz)'},
+  {id:'carne_master',label:'Hamburguesa Master / Ice (pz crudas)'},{id:'carne_jr',label:'Hamburguesa Junior (pz crudas)'},
+  {id:'pan_grande',label:'Pan grande (pz)'},{id:'pan_chico',label:'Pan chico (pz)'},{id:'queso_americano',label:'Queso americano (pz)'},
   {id:'lechuga_romana',label:'Lechuga romana (g)'},{id:'papas_porcion',label:'Papas (porciones)'},
   {id:'tapioca_pz',label:'Tapiocas (pz)'},{id:'brownie_pz',label:'Brownies (pz)'},{id:'helado_bola',label:'Helado (bolas)'},
   {id:'refresco_bot',label:'Refrescos (pz)'},{id:'refresco_sabor',label:'Refresco de sabor (pz)'},

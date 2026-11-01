@@ -7,6 +7,8 @@ import { getStore } from '@netlify/blobs';
 // entran al destino solo cuando el destino los confirma (recibido).
 
 // Carnes: esperado en kg = gramos crudos × unidades vendidas de los platillos listados.
+// Peso crudo de cada hamburguesa (pieza), para pasar traspasos en piezas a kilos.
+const PESO_PZ_KG = { carne_master: 0.1, carne_jr: 0.075 };
 const CARNES = [
   { id: 'carne_master', label: 'Carne Master / Ice (2 × 100 g crudos)', g: 200, dishes: ['master', 'ice'] },
   { id: 'carne_jr',     label: 'Carne Junior (2 × 75 g crudos)',       g: 150, dishes: ['jr'] },
@@ -17,7 +19,8 @@ const SALSAS = ['mermelada_tocino', 'aderezo_secreto'];
 // unidad 'g': el campo pz de la captura guarda gramos.
 // pendiente: true = cantidad aún no confirmada; se registra pero NO genera esperado.
 const INSUMOS = [
-  { id: 'pan_brioche',      per: { master: 1, jr: 1 } },              // Ice va sin pan
+  { id: 'pan_grande',       per: { master: 1 } },                     // pan grande, Master
+  { id: 'pan_chico',        per: { jr: 1 } },                        // pan chico, Junior (Ice va sin pan)
   { id: 'queso_americano',  per: { master: 2, jr: 2, ice: 2 } },      // todas llevan 2 quesos
   { id: 'lechuga_romana',   per: { ice: 150 }, unidad: 'g' },           // 150 g por Ice
   { id: 'papas_porcion',    per: { papas: 1 } },
@@ -73,7 +76,7 @@ function cuadre(punto, prot, sales, traspasos) {
     const esperadoKg = +((c.g * unidades) / 1000).toFixed(3);
     const eKg = num(ent[c.id]?.kg), dKg = num(dev[c.id]?.kg);
     const ePz = num(ent[c.id]?.pz), dPz = num(dev[c.id]?.pz);
-    const trKg = netoTraspaso(traspasos, punto, c.id);
+    const trKg = netoTraspaso(traspasos, punto, c.id) * PESO_PZ_KG[c.id];
     const consumidoKg = +(eKg - dKg + trKg).toFixed(3);
     const difKg = +(consumidoKg - esperadoKg).toFixed(3);
     const pct = eKg > 0 ? +((difKg / eKg) * 100).toFixed(1) : null;

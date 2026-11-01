@@ -11,7 +11,8 @@ const PUNTOS = ['av', 'cf'];
 const ITEMS = [
   { id: 'carne_master',    label: 'Hamburguesa Master/Ice (pz crudas)', unidad: 'pz', per: { master: 2, ice: 2 } },
   { id: 'carne_jr',        label: 'Hamburguesa Junior (pz crudas)',     unidad: 'pz', per: { jr: 2 } },
-  { id: 'pan_brioche',     label: 'Pan brioche',                        unidad: 'pz', per: { master: 1, jr: 1 } },
+  { id: 'pan_grande',      label: 'Pan grande (Master)',                unidad: 'pz', per: { master: 1 } },
+  { id: 'pan_chico',       label: 'Pan chico (Junior)',                 unidad: 'pz', per: { jr: 1 } },
   { id: 'queso_americano', label: 'Queso americano (rebanadas)',        unidad: 'pz', per: { master: 2, jr: 2, ice: 2 } },
   { id: 'lechuga_romana',  label: 'Lechuga romana (g)',                 unidad: 'g',  per: { ice: 150 } },
   { id: 'papas_porcion',   label: 'Papas (porción)',                    unidad: 'pz', per: { papas: 1 } },
