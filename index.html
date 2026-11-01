@@ -331,6 +331,15 @@
   </section>
 
   <!-- GASTOS -->
+  <section id="pedido" hidden>
+    <h2 class="sec">Pedido del día</h2>
+    <p class="note" style="margin-top:0">Cuenta lo que hay en tu punto al cierre y captura el <b>conteo final</b>. El pedido sale de tu mínimo menos lo que hay. Luego copia el texto y mándalo por WhatsApp.</p>
+    <div id="pedidoTable" class="invwrap"></div>
+    <button class="btn" id="pedidoSave" type="button" style="width:100%;margin-top:10px">Guardar conteo</button>
+    <button class="btn ghost" id="pedidoWA" type="button" style="width:100%;margin-top:8px">Copiar pedido para WhatsApp</button>
+    <textarea id="pedidoTexto" hidden style="width:100%;margin-top:8px;min-height:160px;font-family:var(--mono);font-size:13px;background:#E2DCCE;color:var(--paper);border:1px solid #CFC9BA;border-radius:8px;padding:10px"></textarea>
+  </section>
+
   <section id="gastos" hidden>
     <h2 class="sec">Gastos / compras del día</h2>
     <p class="note" style="margin-top:0">Registro de las compras del día (proveedores, insumos, varios). <b>No</b> afecta el cierre ni el arqueo de los taqueros.</p>
@@ -356,6 +365,7 @@
   <button data-tab="ventas" aria-selected="true"><span class="ic">🧾</span>Ventas</button>
   <button data-tab="cierre" aria-selected="false"><span class="ic">📊</span>Cierre</button>
   <button data-tab="gastos" aria-selected="false"><span class="ic">💸</span>Gastos</button>
+  <button data-tab="pedido" aria-selected="false"><span class="ic">📝</span>Pedido</button>
   <button data-tab="gerente" aria-selected="false"><span class="ic">🔒</span>Gerente</button>
 </nav>
 
@@ -862,6 +872,56 @@ $('#invSave').addEventListener('click',async ()=>{
   }catch(err){ toast('No se pudo guardar: '+err.message); }
 });
 
+let pedidoItems=[];
+async function loadPedido(){
+  try{
+    const r=await fetch('/api/inventario?view=pedido&date='+state.date+'&punto='+state.punto);
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'Error');
+    renderPedido(data.pedido||[]);
+  }catch(err){ toast('No se pudo cargar el pedido: '+err.message); }
+}
+function renderPedido(items){
+  pedidoItems=items;
+  const UNI={pz:'pz',g:'g'};
+  $('#pedidoTable').innerHTML = `<table class="invtab">
+    <thead><tr><th>Insumo</th><th>Conteo final</th><th>Mínimo</th><th>Pedir</th></tr></thead>
+    <tbody>${items.map(s=>`<tr data-ped="${s.id}">
+      <td>${s.label} <small>(${UNI[s.unidad]||s.unidad})</small></td>
+      <td><input data-f="conteo" inputmode="decimal" value="${s.conteoFinal??''}"></td>
+      <td>${s.minimo===null?'<small>sin mínimo</small>':s.minimo}</td>
+      <td class="pedir">${s.pedir===null?'—':s.pedir}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+$('#pedidoSave').addEventListener('click',async ()=>{
+  const conteoFinal={};
+  document.querySelectorAll('#pedidoTable tr[data-ped]').forEach(tr=>{
+    const v=tr.querySelector('[data-f="conteo"]').value.trim();
+    if(v!=='') conteoFinal[tr.dataset.ped]=v;
+  });
+  try{
+    const r=await fetch('/api/inventario',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({action:'conteo',punto:state.punto,date:state.date,conteoFinal})});
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'Error');
+    renderPedido(data.pedido||[]);
+    toast('Conteo guardado');
+  }catch(err){ toast('No se pudo guardar: '+err.message); }
+});
+$('#pedidoWA').addEventListener('click',()=>{
+  const lineas=pedidoItems.filter(s=>s.pedir&&s.pedir>0).map(s=>`• ${s.label}: ${s.pedir} ${s.unidad}`);
+  const nombre=PUNTO_NOMBRE[state.punto]||state.punto;
+  const texto = lineas.length
+    ? `*Pedido ${nombre}* — ${state.date}\n${lineas.join('\n')}`
+    : `*Pedido ${nombre}* — ${state.date}\nNo hay nada que pedir hoy.`;
+  const ta=$('#pedidoTexto'); ta.hidden=false; ta.value=texto.replace(/\\n/g,'\n');
+  ta.select();
+  const abrir='https://wa.me/?text='+encodeURIComponent(ta.value);
+  try{ navigator.clipboard.writeText(ta.value); }catch(_){}
+  toast('Texto copiado. Pégalo en WhatsApp.');
+  window.open(abrir,'_blank');
+});
+
 function renderProt(data){
   const p=data.protein||{entregada:{},devuelta:{}};
   const cz=data.cuadre||{carnes:[],quesos:[],salsas:[],insumos:[]};
@@ -1071,9 +1131,10 @@ document.querySelector('nav.tabs').addEventListener('click',(e)=>{
   const b=e.target.closest('button'); if(!b)return;
   const tab=b.dataset.tab;
   [...document.querySelectorAll('nav.tabs button')].forEach(x=>x.setAttribute('aria-selected', x===b));
-  ['ventas','cierre','gastos','gerente'].forEach(id=>$('#'+id).hidden = id!==tab);
+  ['ventas','cierre','gastos','pedido','gerente'].forEach(id=>$('#'+id).hidden = id!==tab);
   if(tab==='gerente' && !state.gerentePass){ $('#lock').hidden=false; $('#gpanel').hidden=true; }
   if(tab==='gastos') loadGastos();
+  if(tab==='pedido') loadPedido();
   if(tab==='cierre'){ loadSales(true); loadGastos(); }
 });
 $('#date').addEventListener('change',()=>{

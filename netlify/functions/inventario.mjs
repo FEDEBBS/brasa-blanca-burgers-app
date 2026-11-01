@@ -1,28 +1,28 @@
 import { getStore } from '@netlify/blobs';
 
-// Inventario por almacén (punto de control: av = Anima Village, cf = El Cuarto Frío).
+// Inventario por punto (av = Anima Village, cf = El Cuarto Frío).
+// Todo en piezas (carne = hamburguesas crudas). Lechuga en gramos (150 g por Ice).
 // Existencia teórica = apertura + recibido + traspasos netos − consumo teórico − mermas.
-// Diferencia = conteo final − teórico. Pedir = mínimo − conteo final (si hay mínimo).
-// Consumo teórico: mismas fichas que protein.mjs (solo ventas cerradas).
-// Acceso de gerente con x-gerente. Insumos sin ficha confirmada no tienen consumo teórico.
+// Pedido = mínimo − conteo final (nunca menos de 0).
+// Encargado: GET ?view=pedido y POST action 'conteo' sin contraseña (solo cantidades).
+// Gerente: GET completo, 'capturar' y 'minimos' con x-gerente.
 
 const PUNTOS = ['av', 'cf'];
-// unidad: kg | g | pz. tipo 'carne': gramos crudos × unidades / 1000. per: piezas o gramos por platillo.
 const ITEMS = [
-  { id: 'carne_master',    label: 'Carne Master / Ice',  unidad: 'kg', tipo: 'carne', g: 200, dishes: ['master', 'ice'] },
-  { id: 'carne_jr',        label: 'Carne Junior',        unidad: 'kg', tipo: 'carne', g: 150, dishes: ['jr'] },
-  { id: 'pan_brioche',     label: 'Pan brioche',         unidad: 'pz', per: { master: 1, jr: 1 } },
-  { id: 'queso_americano', label: 'Queso americano',     unidad: 'pz', per: { master: 2, jr: 2, ice: 2 } },
-  { id: 'lechuga_romana',  label: 'Lechuga romana',      unidad: 'g',  per: { ice: 150 } },
-  { id: 'papas_porcion',   label: 'Papas (porción)',     unidad: 'pz', per: { papas: 1 } },
-  { id: 'tapioca_pz',      label: 'Tapioca 300 g',       unidad: 'pz', per: { tapioca: 1 } },
-  { id: 'brownie_pz',      label: 'Brownie 300 g',       unidad: 'pz', per: { brownie: 1 } },
-  { id: 'helado_bola',     label: 'Helado (bola)',       unidad: 'pz', per: { brownie: 1 } },
-  { id: 'refresco_bot',    label: 'Refresco (pieza)',    unidad: 'pz', per: { refresco: 1 } },
-  { id: 'refresco_sabor',  label: 'Refresco de sabor',   unidad: 'pz', per: { mocktail: 1 } },
-  { id: 'espumoso_manzana',label: 'Espumoso de manzana', unidad: 'pz', per: null },            // [POR CONFIRMAR] consumo
-  { id: 'mermelada_tocino',label: 'Mermelada de tocino', unidad: 'kg', per: null },            // [POR CONFIRMAR] receta
-  { id: 'aderezo_secreto', label: 'Aderezo secreto',     unidad: 'kg', per: null },            // [POR CONFIRMAR] receta
+  { id: 'carne_master',    label: 'Hamburguesa Master/Ice (pz crudas)', unidad: 'pz', per: { master: 2, ice: 2 } },
+  { id: 'carne_jr',        label: 'Hamburguesa Junior (pz crudas)',     unidad: 'pz', per: { jr: 2 } },
+  { id: 'pan_brioche',     label: 'Pan brioche',                        unidad: 'pz', per: { master: 1, jr: 1 } },
+  { id: 'queso_americano', label: 'Queso americano (rebanadas)',        unidad: 'pz', per: { master: 2, jr: 2, ice: 2 } },
+  { id: 'lechuga_romana',  label: 'Lechuga romana (g)',                 unidad: 'g',  per: { ice: 150 } },
+  { id: 'papas_porcion',   label: 'Papas (porción)',                    unidad: 'pz', per: { papas: 1 } },
+  { id: 'tapioca_pz',      label: 'Tapioca 300 g',                      unidad: 'pz', per: { tapioca: 1 } },
+  { id: 'brownie_pz',      label: 'Brownie 300 g',                      unidad: 'pz', per: { brownie: 1 } },
+  { id: 'helado_bola',     label: 'Helado (bola)',                      unidad: 'pz', per: { brownie: 1 } },
+  { id: 'refresco_bot',    label: 'Refresco',                           unidad: 'pz', per: { refresco: 1 } },
+  { id: 'refresco_sabor',  label: 'Refresco de sabor (lata)',           unidad: 'pz', per: { mocktail: 1 } },
+  { id: 'espumoso_manzana',label: 'Espumoso de manzana',                unidad: 'pz', per: null },   // [POR CONFIRMAR] consumo
+  { id: 'mermelada_tocino',label: 'Mermelada de tocino',                unidad: 'pz', per: null },   // [POR CONFIRMAR] receta
+  { id: 'aderezo_secreto', label: 'Aderezo secreto',                    unidad: 'pz', per: null },   // [POR CONFIRMAR] receta
 ];
 
 const store = () => getStore('carrito');
@@ -36,14 +36,9 @@ const num = (v) => { const n = parseFloat(v); return isNaN(n) || n < 0 ? 0 : n; 
 const r3 = (n) => Math.round(n * 1000) / 1000;
 
 function consumoTeorico(item, q) {
-  if (!item.per && !item.tipo) return null;
-  if (item.tipo === 'carne') {
-    const units = item.dishes.reduce((a, d) => a + (q[d] || 0), 0);
-    return r3((item.g * units) / 1000);
-  }
+  if (!item.per) return null;
   return Object.entries(item.per).reduce((a, [d, n]) => a + n * (q[d] || 0), 0);
 }
-
 function vendidos(sales) {
   const q = {};
   for (const s of sales) {
@@ -52,7 +47,6 @@ function vendidos(sales) {
   }
   return q;
 }
-
 function trasladoNeto(traspasos, punto, id) {
   let neto = 0;
   for (const t of traspasos) {
@@ -63,6 +57,10 @@ function trasladoNeto(traspasos, punto, id) {
   }
   return neto;
 }
+function conteoDe(cap, id) {
+  const v = cap.conteoFinal?.[id];
+  return v === undefined || v === '' ? null : num(v);
+}
 
 async function calcular(punto, date) {
   const cap = (await store().get(ikey(punto, date), { type: 'json' })) || { apertura: {}, recibido: {}, mermas: {}, conteoFinal: {} };
@@ -70,12 +68,11 @@ async function calcular(punto, date) {
   const sales = (await store().get(vkey(punto, date), { type: 'json' })) || [];
   const traspasos = (await store().get(tkey(date), { type: 'json' })) || [];
   const q = vendidos(sales);
-
   const stock = ITEMS.map((it) => {
     const apertura = num(cap.apertura?.[it.id]);
     const recibido = num(cap.recibido?.[it.id]);
     const mermas = num(cap.mermas?.[it.id]);
-    const conteo = cap.conteoFinal?.[it.id] === undefined || cap.conteoFinal?.[it.id] === '' ? null : num(cap.conteoFinal[it.id]);
+    const conteo = conteoDe(cap, it.id);
     const traslado = trasladoNeto(traspasos, punto, it.id);
     const consumo = consumoTeorico(it, q);
     const teorico = consumo === null ? null : r3(apertura + recibido + traslado - consumo - mermas);
@@ -91,31 +88,53 @@ async function calcular(punto, date) {
   return { stock, capturado: !!(await store().get(ikey(punto, date), { type: 'json' })) };
 }
 
-export default async (req) => {
-  const expected = process.env.MANAGER_PASSWORD || '';
-  if (!expected) return json({ error: 'Falta configurar MANAGER_PASSWORD en Netlify' }, 500);
-  if ((req.headers.get('x-gerente') || '') !== expected) return json({ error: 'Contraseña de gerente incorrecta' }, 401);
+function pedidoDe(stock) {
+  return stock.map((s) => ({ id: s.id, label: s.label, unidad: s.unidad, conteoFinal: s.conteoFinal, minimo: s.minimo, pedir: s.pedir }));
+}
 
+export default async (req) => {
   const url = new URL(req.url);
+  const expected = process.env.MANAGER_PASSWORD || '';
+  const esGerente = expected && (req.headers.get('x-gerente') || '') === expected;
   try {
     if (req.method === 'GET') {
       const date = url.searchParams.get('date');
       const punto = url.searchParams.get('punto');
       if (!date) return json({ error: 'Falta la fecha' }, 400);
       if (!PUNTOS.includes(punto)) return json({ error: 'Falta el punto de control' }, 400);
+      // Vista del encargado: solo cantidades, sin contraseña
+      if (url.searchParams.get('view') === 'pedido') {
+        const { stock } = await calcular(punto, date);
+        return json({ pedido: pedidoDe(stock) });
+      }
+      if (!expected) return json({ error: 'Falta configurar MANAGER_PASSWORD en Netlify' }, 500);
+      if (!esGerente) return json({ error: 'Contraseña de gerente incorrecta' }, 401);
       return json(await calcular(punto, date));
     }
 
     if (req.method === 'POST') {
       const body = await req.json();
-      const { punto, action } = body;
+      const { punto, action, date } = body;
       if (!PUNTOS.includes(punto)) return json({ error: 'Falta el punto de control' }, 400);
+      const limpio = (obj) => Object.fromEntries(ITEMS.filter((it) => obj && obj[it.id] !== undefined && obj[it.id] !== '')
+        .map((it) => [it.id, num(obj[it.id])]));
+
+      // Encargado: conteo final, sin contraseña
+      if (action === 'conteo') {
+        if (!date) return json({ error: 'Falta la fecha' }, 400);
+        const cap = (await store().get(ikey(punto, date), { type: 'json' })) || { apertura: {}, recibido: {}, mermas: {}, conteoFinal: {} };
+        cap.conteoFinal = { ...(cap.conteoFinal || {}), ...limpio(body.conteoFinal) };
+        cap.ts = Date.now();
+        await store().setJSON(ikey(punto, date), cap);
+        const { stock } = await calcular(punto, date);
+        return json({ pedido: pedidoDe(stock) });
+      }
+
+      if (!expected) return json({ error: 'Falta configurar MANAGER_PASSWORD en Netlify' }, 500);
+      if (!esGerente) return json({ error: 'Contraseña de gerente incorrecta' }, 401);
 
       if (action === 'capturar') {
-        const { date } = body;
         if (!date) return json({ error: 'Falta la fecha' }, 400);
-        const limpio = (obj) => Object.fromEntries(ITEMS.filter((it) => obj && obj[it.id] !== undefined && obj[it.id] !== '')
-          .map((it) => [it.id, num(obj[it.id])]));
         const cap = {
           apertura: limpio(body.apertura),
           recibido: limpio(body.recibido),
@@ -128,10 +147,9 @@ export default async (req) => {
       }
 
       if (action === 'minimos') {
-        const limpio = Object.fromEntries(ITEMS.filter((it) => body.minimos && body.minimos[it.id] !== undefined && body.minimos[it.id] !== '')
-          .map((it) => [it.id, num(body.minimos[it.id])]));
-        await store().setJSON(mkey(punto), limpio);
-        return json({ minimos: limpio });
+        const minimos = limpio(body.minimos);
+        await store().setJSON(mkey(punto), minimos);
+        return json({ minimos });
       }
 
       return json({ error: 'Acción desconocida' }, 400);
